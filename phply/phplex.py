@@ -46,7 +46,8 @@ unparsed = (
     'OPEN_TAG', 'OPEN_TAG_WITH_ECHO', 'CLOSE_TAG',
 
     # Comments
-    'COMMENT', 'DOC_COMMENT',
+    #'COMMENT', 
+    'DOC_COMMENT',
 )
 
 tokens = reserved + unparsed + (
@@ -95,6 +96,7 @@ tokens = reserved + unparsed + (
 
     # Backtick
     'BACKTICK',
+    "COMMENT"
 )
 
 # Newlines
@@ -205,7 +207,7 @@ def t_php_DOC_COMMENT(t):
     return t
 
 def t_php_COMMENT(t):
-    r'/\*(.|\n)*?\*/ | //([^?%\n]|[?%](?!>))*\n? | \#([^?%\n]|[?%](?!>))*\n?'
+    r'/\*(.|\n)*?\*/\n? | //([^?%\n]|[?%](?!>))*\n? | \#([^?%\n]|[?%](?!>))*\n?'
     t.lexer.lineno += t.value.count("\n")
     return t
 

@@ -260,7 +260,7 @@ def p_statement_static(p):
     p[0] = ast.Static(p[2], lineno=p.lineno(1))
 
 def p_statement_echo(p):
-    'statement : ECHO echo_expr_list SEMI'
+    'statement : ECHO echo_expr_list'
     p[0] = ast.Echo(p[2], lineno=p.lineno(1))
 
 def p_statement_inline_html(p):
@@ -268,15 +268,18 @@ def p_statement_inline_html(p):
     p[0] = ast.InlineHTML(p[1], lineno=p.lineno(1))
 
 def p_statement_expr(p):
-    'statement : expr SEMI'
+    'statement : expr'
     p[0] = p[1]
 
 def p_statement_unset(p):
-    'statement : UNSET LPAREN unset_variables RPAREN SEMI'
+    'statement : UNSET LPAREN unset_variables RPAREN'
     p[0] = ast.Unset(p[3], lineno=p.lineno(1))
 
 def p_statement_empty(p):
     'statement : SEMI'
+
+    p[0]=ast.Semi(lineno=p.lineno(1))
+
     pass
 
 def p_statement_try(p):
@@ -301,7 +304,7 @@ def p_maybe_finally(p):
         p[0] = None
 
 def p_statement_throw(p):
-    'statement : THROW expr SEMI'
+    'statement : THROW expr'
     p[0] = ast.Throw(p[2], lineno=p.lineno(1))
 
 def p_statement_declare(p):
@@ -318,7 +321,7 @@ def p_declare_list(p):
 
 def p_declare_statement(p):
     '''declare_statement : statement
-                         | COLON inner_statement_list ENDDECLARE SEMI'''
+                         | COLON inner_statement_list ENDDECLARE'''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -356,7 +359,7 @@ def p_new_else_single(p):
 
 def p_while_statement(p):
     '''while_statement : statement
-                       | COLON inner_statement_list ENDWHILE SEMI'''
+                       | COLON inner_statement_list ENDWHILE'''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -377,7 +380,7 @@ def p_non_empty_for_expr(p):
 
 def p_for_statement(p):
     '''for_statement : statement
-                     | COLON inner_statement_list ENDFOR SEMI'''
+                     | COLON inner_statement_list ENDFOR'''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -404,7 +407,7 @@ def p_foreach_optional_arg(p):
 
 def p_foreach_statement(p):
     '''foreach_statement : statement
-                         | COLON inner_statement_list ENDFOREACH SEMI'''
+                         | COLON inner_statement_list ENDFOREACH'''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -419,8 +422,8 @@ def p_switch_case_list(p):
         p[0] = p[3]
 
 def p_switch_case_list_colon(p):
-    '''switch_case_list : COLON case_list ENDSWITCH SEMI
-                        | COLON SEMI case_list ENDSWITCH SEMI'''
+    '''switch_case_list : COLON case_list ENDSWITCH
+                        | COLON SEMI case_list ENDSWITCH'''
     if len(p) == 5:
         p[0] = p[2]
     else:
@@ -440,7 +443,7 @@ def p_case_list(p):
 def p_case_separator(p):
     '''case_separator : COLON
                       | SEMI'''
-    pass
+
 
 def p_global_var_list(p):
     '''global_var_list : global_var_list COMMA global_var
@@ -579,8 +582,8 @@ def p_trait_modifier(p):
     p[0] = ast.TraitModifier(p[1], p[3], None)
 
 def p_trait_modifier_with_visibility(p):
-    '''trait_modifier : trait_member AS visibility_modifier STRING SEMI
-                      | trait_member AS visibility_modifier SEMI'''
+    '''trait_modifier : trait_member AS visibility_modifier STRING
+                      | trait_member AS visibility_modifier'''
     if len(p) == 6:
         p[0] = ast.TraitModifier(p[1], p[4], p[3])
     else:
@@ -597,9 +600,9 @@ def p_trait_statement_list(p):
 
 def p_trait_statement(p):
     '''trait_statement : method_modifiers FUNCTION is_reference STRING LPAREN parameter_list RPAREN method_body
-                       | variable_modifiers class_variable_declaration SEMI
+                       | variable_modifiers class_variable_declaration
                        | USE fully_qualified_class_name LBRACE trait_modifiers_list RBRACE
-                       | USE fully_qualified_class_name SEMI'''
+                       | USE fully_qualified_class_name '''
     if len(p) == 9:
         p[0] = ast.Method(p[4], p[1], p[6], p[8], p[3], lineno=p.lineno(2))
     elif len(p) == 6:
@@ -621,10 +624,10 @@ def p_class_statement_list(p):
 
 def p_class_statement(p):
     '''class_statement : method_modifiers FUNCTION is_reference STRING LPAREN parameter_list RPAREN method_body
-                       | variable_modifiers class_variable_declaration SEMI
-                       | class_constant_declaration SEMI
+                       | variable_modifiers class_variable_declaration
+                       | class_constant_declaration
                        | USE fully_qualified_class_name LBRACE trait_modifiers_list RBRACE
-                       | USE fully_qualified_class_name SEMI'''
+                       | USE fully_qualified_class_name '''
     if len(p) == 9:
         p[0] = ast.Method(p[4], p[1], p[6], p[8], p[3], lineno=p.lineno(2))
     elif len(p) == 6:
@@ -901,6 +904,7 @@ def p_function_call(p):
                      | NS_SEPARATOR namespace_name LPAREN function_call_parameter_list RPAREN
                      | NAMESPACE NS_SEPARATOR namespace_name LPAREN function_call_parameter_list RPAREN'''
     if len(p) == 5:
+
         p[0] = ast.FunctionCall(p[1], p[3], lineno=p.lineno(2))
     elif len(p) == 6:
         p[0] = ast.FunctionCall(p[1] + p[2], p[4], lineno=p.lineno(1))
@@ -1087,6 +1091,12 @@ def p_non_empty_array_pair_list_pair(p):
     else:
         p[0] = [ast.ArrayElement(p[1], p[3], False, lineno=p.lineno(2))]
 
+# Esto fue lo que agregue
+def p_statement_comment(p):
+    '''statement : COMMENT'''
+    #p[0] = ('comment', p[1])
+    p[0] = ast.Comment( p[1])
+
 def p_possible_comma(p):
     '''possible_comma : empty
                       | COMMA'''
@@ -1113,7 +1123,7 @@ def p_function_call_parameter(p):
         p[0] = ast.Parameter(p[2], True, lineno=p.lineno(1))
 
 def p_expr_function(p):
-    'expr : FUNCTION is_reference LPAREN parameter_list RPAREN lexical_vars LBRACE inner_statement_list RBRACE'
+    '''expr : FUNCTION is_reference LPAREN parameter_list RPAREN lexical_vars LBRACE inner_statement_list RBRACE'''
     p[0] = ast.Closure(p[4], p[6], p[8], p[2], lineno=p.lineno(1))
 
 def p_lexical_vars(p):

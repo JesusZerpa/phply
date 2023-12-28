@@ -15,6 +15,11 @@ class Node(object):
             self.lineno = kwargs['lineno']
         except KeyError:
             self.lineno = None
+        try:
+            self.semi = kwargs['semi']
+        except KeyError:
+            self.semi = False
+            
         for i, field in enumerate(self.fields):
             setattr(self, field, args[i])
 
@@ -70,7 +75,9 @@ Assignment = node('Assignment', ['node', 'expr', 'is_ref'])
 ListAssignment = node('ListAssignment', ['nodes', 'expr'])
 New = node('New', ['name', 'params'])
 Clone = node('Clone', ['node'])
+Semi = node('Semi', [])
 Break = node('Break', ['node'])
+Comment = node('Comment', ['node'])
 Continue = node('Continue', ['node'])
 Return = node('Return', ['node'])
 Yield = node('Yield', ['node'])
