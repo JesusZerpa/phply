@@ -107,7 +107,8 @@ def p_top_statement(p):
     '''top_statement : statement
                      | function_declaration_statement
                      | class_declaration_statement
-                     | HALT_COMPILER LPAREN RPAREN SEMI'''
+                     | HALT_COMPILER LPAREN RPAREN SEMI
+                     '''
     if len(p) == 2:
         p[0] = p[1]
     else:
@@ -176,10 +177,9 @@ def p_inner_statement_list(p):
         p[0] = []
 
 def p_inner_statement(p):
-    '''inner_statement : statement
-                       | function_declaration_statement
-                       | class_declaration_statement
-                       | HALT_COMPILER LPAREN RPAREN SEMI'''
+    '''inner_statement : function_declaration_statement
+                       | HALT_COMPILER LPAREN RPAREN SEMI
+                       | statement'''
     assert len(p) == 2, "__HALT_COMPILER() can only be used from the outermost scope"
     p[0] = p[1]
 
@@ -505,10 +505,18 @@ def p_function_declaration_statement(p):
     p[0] = ast.Function(p[3], p[5], p[8], p[2], lineno=p.lineno(1))
 
 def p_class_declaration_statement(p):
-    '''class_declaration_statement : class_entry_type STRING extends_from implements_list LBRACE class_statement_list RBRACE
+    '''class_declaration_statement : class_entry_type STRING LBRACE class_statement_list RBRACE
+                                   | class_entry_type STRING extends_from implements_list LBRACE class_statement_list RBRACE
                                    | INTERFACE STRING interface_extends_list LBRACE class_statement_list RBRACE
-                                   | TRAIT STRING LBRACE trait_statement_list RBRACE'''
-    if len(p) == 8:
+                                   | TRAIT STRING LBRACE trait_statement_list RBRACE
+                                   
+                                   '''
+    print("jjjjjjjjjjjjjjj",[x for x in p])
+    print("sssssssss ", len(p) )
+    if len(p) == 6:
+        'name', 'type', 'extends', 'implements', 'traits', 'nodes'
+        p[0] = ast.Class(p[2], p[2],None,None,None, p[4], lineno=p.lineno(2))
+    elif len(p) == 8:
         traits = []
         stmts = []
         for s in p[6]:
@@ -533,6 +541,7 @@ def p_class_entry_type(p):
     '''class_entry_type : CLASS
                         | ABSTRACT CLASS
                         | FINAL CLASS'''
+    print("oooooooooooooo",[x for x in p])
     if len(p) == 3:
         p[0] = p[1].lower()
 
@@ -616,18 +625,23 @@ def p_trait_statement(p):
 def p_class_statement_list(p):
     '''class_statement_list : class_statement_list class_statement
                             | empty'''
-
+    print("iiiiiiiiiiiiii ",[x for x in p])
     if len(p) == 3:
         p[0] = p[1] + [p[2]]
     else:
         p[0] = []
 
 def p_class_statement(p):
-    '''class_statement : method_modifiers FUNCTION is_reference STRING LPAREN parameter_list RPAREN method_body
+    '''class_statement : visibility_modifier VARIABLE SEMI
+                       | visibility_modifier static_var_list SEMI
+                       | method_modifiers FUNCTION is_reference STRING LPAREN parameter_list RPAREN method_body
                        | variable_modifiers class_variable_declaration
                        | class_constant_declaration
                        | USE fully_qualified_class_name LBRACE trait_modifiers_list RBRACE
-                       | USE fully_qualified_class_name '''
+                       | USE fully_qualified_class_name 
+                       | COMMENT '''
+
+    print("bbbbbbbbbbbbbbbb ",[x for x in p])
     if len(p) == 9:
         p[0] = ast.Method(p[4], p[1], p[6], p[8], p[3], lineno=p.lineno(2))
     elif len(p) == 6:
@@ -638,7 +652,10 @@ def p_class_statement(p):
         else:
             p[0] = ast.ClassVariables(p[1], p[2], lineno=p.lineno(3))
     else:
-        p[0] = ast.ClassConstants(p[1], lineno=p.lineno(2))
+        if p[1].startswith("//") or p[1].startswith("/*"):
+            p[0] = ast.Comment(p[1], lineno=p.lineno(1))
+        else:
+            p[0] = ast.ClassConstants(p[1], lineno=p.lineno(1))
 
 def p_class_variable_declaration_initial(p):
     '''class_variable_declaration : class_variable_declaration COMMA VARIABLE EQUALS static_scalar
@@ -714,6 +731,7 @@ def p_visibility_modifier(p):
     '''visibility_modifier : PUBLIC
                            | PROTECTED
                            | PRIVATE'''
+    print("ffffffffffff ",[x for x in p])
     p[0] = p[1].lower()
 
 def p_member_modifier(p):
@@ -749,6 +767,7 @@ def p_parameter(p):
                  | class_name VARIABLE EQUALS static_scalar
                  | AND VARIABLE EQUALS static_scalar
                  | class_name AND VARIABLE EQUALS static_scalar'''
+
     if len(p) == 2: # VARIABLE
         p[0] = ast.FormalParameter(p[1], None, False, None, lineno=p.lineno(1))
     elif len(p) == 3 and p[1] == '&': # AND VARIABLE
@@ -916,6 +935,7 @@ def p_function_call_static(p):
                      | class_name DOUBLE_COLON variable_without_objects LPAREN function_call_parameter_list RPAREN
                      | variable_class_name DOUBLE_COLON STRING LPAREN function_call_parameter_list RPAREN
                      | variable_class_name DOUBLE_COLON variable_without_objects LPAREN function_call_parameter_list RPAREN'''
+    print("ffffffffffffffff",[x for x in p])
     p[0] = ast.StaticMethodCall(p[1], p[3], p[5], lineno=p.lineno(2))
 
 def p_function_call_static_dynamic_name(p):
